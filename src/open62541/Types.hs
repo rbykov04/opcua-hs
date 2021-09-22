@@ -28,7 +28,7 @@ data UaDataType = UaDataType
   {
     getUaDataTypeId               ::   UaNodeId
   }
-  deriving Show
+  deriving (Show, Eq)
 
 
 data UaVariantStruct =  UaVariantStruct
@@ -42,7 +42,23 @@ data UaVariantStruct =  UaVariantStruct
   }
   deriving Show
 
-id_Boolean    = UaNodeIdNum 0 0 1
-id_DateTime   = UaNodeIdNum 0 0 3
-id_String     = UaNodeIdNum 0 0 12
-id_NodeId     = UaNodeIdNum 0 0 17
+data UaNodeClass = UaObjectClass
+  | UaVariableClass
+  | UaMethodClass
+  | UaObjectTypeClass
+  | UaVariableTypeClass
+  | UaRerenceTypeClass
+  | UaDataTypeClass
+  | UaViewClass
+  deriving Show
+
+data UaReadAttr = UaClass UaNodeClass | UaValue UaVariant
+  deriving Show
+
+
+id_Boolean     = UaNodeIdNum 0 0 1
+id_DateTime    = UaNodeIdNum 0 0 3
+id_String      = UaNodeIdNum 0 0 12
+id_VariantType = UaNodeIdNum 0 0 24
+id_NodeClassType = UaNodeIdNum 0 0 257
+id_NodeId      = UaNodeIdNum 0 0 17

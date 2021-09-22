@@ -27,7 +27,13 @@ main = do
   value <- sequence $ map f [2262..2267]
   putStrLn $ show value
 
-  value <- sequence $ map f [0..1]
-  putStrLn $ show value
+  let read_class id = read_attr_class client (UaNodeIdNum 0 0 id) 2 id_NodeClassType
+  let ids = [29, 32, 76, 69, 85]
+  c <- sequence $ map read_class ids
+  value <- sequence $ map f ids
+  putStrLn $ show (map (("  "++). show) (zip value c))
+
+
+
 
   ua_client_delete client

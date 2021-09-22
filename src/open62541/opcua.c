@@ -7,12 +7,7 @@
 
 #include <stdlib.h>
 
-UA_StatusCode UA_Client_readValueAttribute2(
-  UA_Client *client, const UA_NodeId *nodeId, void *out);
-
-UA_StatusCode UA_Client_readValueAttribute2(
-  UA_Client *client, const UA_NodeId *nodeId, void *out) {
-
-    UA_StatusCode c = UA_Client_readValueAttribute(client, *nodeId, out);
-    return c;
+const UA_DataType *get_UA_TYPES(int i);
+const UA_DataType *get_UA_TYPES(int i) {
+   return &UA_TYPES[i];
 }

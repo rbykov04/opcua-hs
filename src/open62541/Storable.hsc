@@ -32,6 +32,12 @@ asString d = do
         else do str <- peekCAString str
                 return (Right $ UaString str)
 
+instance Storable UaReadAttr where
+    sizeOf _ = (#size UA_Variant) -- alloc max
+    alignment _ = alignment (undefined :: CString)
+    peek _ = undefined
+    poke _ _ = undefined
+
 
 instance Storable UaVariantStruct where
     sizeOf    _ = (#size UA_Variant)
