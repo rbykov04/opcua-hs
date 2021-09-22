@@ -5,11 +5,7 @@ import Foreign
 data UaClient = UaClient
 data UaClientConfig = UaClientConfig
 
-data UaVariant = UaUnknownType Int32
-                 | UaError String
-                 | UaString String
-                 | UaAreString String
-                 | UaDateTime Int32
+data UaVariant =   UaString String
   deriving (Show)
 
 
@@ -40,7 +36,7 @@ data UaVariantStruct =  UaVariantStruct
     getVariantType                ::  Ptr UaDataType,
     getVariantStorageType         ::  Int16,
     getVariantArrayLength         ::  Int32,
-    getVariantData                ::  Ptr (),
+    getVariantData                ::  Ptr UaVariant,
     getVariantArrayDemensionsSize ::  Int32,
     getVariantArrayDemensions     ::  Ptr Int32
   }

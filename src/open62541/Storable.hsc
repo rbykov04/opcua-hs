@@ -23,37 +23,15 @@ get_type_value variant = do
          id <- #{peek UA_DataType, typeId.identifier} t
          return (Right id)
 
-
-asString :: Ptr UaVariant -> IO (UaVariant)
-asString ptr = do
-    d <- #{peek UA_Variant, data} ptr
-    if d == nullPtr then return (UaError "Ua_Variant.data == NULL")
+asString :: Ptr UaVariant -> IO (Either String UaVariant)
+asString d = do
+    if d == nullPtr then return (Left "Ua_Variant.data == NULL")
     else do
         str <- #{peek UA_String, data} d
-        if str == nullPtr then return (UaError "Ua_String.data == NULL")
+        if str == nullPtr then return (Left "Ua_String.data == NULL")
         else do str <- peekCAString str
-                return (UaString str)
+                return (Right $ UaString str)
 
-instance Storable UaVariant where
-    sizeOf    _ = (#size UA_Variant)
-    alignment _ = alignment (undefined :: CString)
-    peek ptr = do
-      id <- get_type_value ptr
-      case id of
-        Left v -> return (UaError v)
-        Right typeid -> do
-          if typeid == 13
-            then do
-                d <- #{peek UA_Variant, data} ptr
-                x <- peek d
-                (return . UaDateTime) x
-            else if typeid == 12
-            then do
-                v <- asString ptr
-                return v
-             else do (return . UaUnknownType) typeid
-
-    poke ptr _  = undefined
 
 instance Storable UaVariantStruct where
     sizeOf    _ = (#size UA_Variant)

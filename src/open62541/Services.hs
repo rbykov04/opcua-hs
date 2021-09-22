@@ -11,49 +11,44 @@ import OpcUa.Types
 import OpcUa.Bindings
 import OpcUa.Storable
 
-check_type :: Ptr UaClient -> UaNodeId -> IO ()
-check_type client id = do
-  (Right v) <- read_variant client id
-  id <-get_type_value v
-  putStrLn$ "type is " ++ show id
-  free v
 
-check_data_value :: Ptr UaDataType -> IO ()
-check_data_value ptr = do
-    if ptr == nullPtr
-        then putStrLn "ptr is null"
-        else do
-            v <- peek ptr
-            putStrLn $ show v
+get_data_value :: Ptr UaDataType -> IO (Either String UaDataType)
+get_data_value ptr | ptr == nullPtr = return $ Left "data-type ptr is null"
+get_data_value ptr | otherwise = do
+    v <- peek ptr
+    return (Right v)
 
-read_variant :: Ptr UaClient -> UaNodeId -> IO (Either String (Ptr UaVariant))
+convert :: UaNodeId -> Ptr UaVariant -> IO (Either String UaVariant)
+convert typeid ptr | typeid == id_String   = asString ptr
+convert (UaNodeIdNum _ _ x) _ = return (Left "unknown type")
+--convert _ _  = return (UaError "typeid is not type")
+
+read_variant :: Ptr UaClient -> UaNodeId -> IO (Either String UaVariant)
 read_variant client id = do
   id_ptr <- malloc
   poke id_ptr id
 
-  value    <- malloc
-  valuestr <- malloc
-  status <- ua_read_value  client id_ptr value
-  status <- ua_read_value2 client id_ptr valuestr
-  e <- peek valuestr
-  check_data_value (getVariantType e)
-  putStrLn $ "struct " ++ show e
+  value_ptr    <- malloc
+  status <- ua_read_value client id_ptr value_ptr
   free id_ptr
+
   if status == 0
-    then return (Right value)
+    then do
+        value <- peek value_ptr
+        free value_ptr
+
+        t <- get_data_value (getVariantType value)
+        case t of
+          Right (UaDataType typeid)  -> do
+            v <- convert typeid (getVariantData value)
+            return v
+          Left t -> return (Left t)
     else do
-       free value
-       (return. Left .show) status
+        free value_ptr
+        return $ Left $ "read value status: " ++ show status
 
 read_value :: Ptr UaClient -> UaNodeId -> IO (Either String UaVariant)
-read_value client id = do
-  v <- read_variant client id
-  case v of
-    Right var -> do
-      value <- peek var
-      free var
-      return (Right value)
-    Left code -> do return (Left code)
+read_value = read_variant
 
 print_time :: UaDateTimeStruct -> IO ()
 print_time time = do
@@ -74,20 +69,3 @@ readAndShowValue client id = do
 ns0_read_value :: Ptr UaClient -> Int32 -> IO (Either String UaVariant)
 ns0_read_value client id = read_value client (UaNodeIdNum 0 0 id)
 
-opcua_test :: Int -> IO ()
-opcua_test  i = do
-  client <- ua_client_new
-  code <- ua_client_config_set_default (ua_client_get_config client)
-  putStr $ "code: SetConfig default " ++ show code ++ "\n"
-
-  endpoint <- newCString "opc.tcp://localhost:4840"
-  code <- ua_client_connect client endpoint
-
-  let f = ns0_read_value client
-
-  value <- sequence $ map f [2262..2267]
-  putStrLn $ show (sequence value)
-
-
-  ua_client_delete client
-  free endpoint

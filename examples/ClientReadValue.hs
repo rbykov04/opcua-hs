@@ -25,6 +25,9 @@ main = do
 
   let f = ns0_read_value client
   value <- sequence $ map f [2262..2267]
-  putStrLn $ show (sequence value)
+  putStrLn $ show value
+
+  value <- sequence $ map f [0..1]
+  putStrLn $ show value
 
   ua_client_delete client
