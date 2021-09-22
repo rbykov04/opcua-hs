@@ -5,8 +5,6 @@ import Foreign.C.Types
 import Foreign.Ptr
 import Data.Int
 import Foreign.Marshal.Alloc
-
-
 import OpcUa.Types
 import OpcUa.Bindings
 import OpcUa.Storable
@@ -21,15 +19,12 @@ main = do
   client <- ua_client_new
   code <- ua_client_config_set_default (ua_client_get_config client)
 
-
   endpoint <- newCString uri
   code <- ua_client_connect client endpoint
-
+  free endpoint
 
   let f = ns0_read_value client
-
   value <- sequence $ map f [2262..2267]
   putStrLn $ show (sequence value)
 
   ua_client_delete client
-  free endpoint
