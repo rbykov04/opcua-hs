@@ -4,3 +4,4 @@ test-c-server
 *.hi
 *.o
 src/open62541/Storable.hs
+examples/clientReadValue
