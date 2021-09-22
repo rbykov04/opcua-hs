@@ -12,7 +12,6 @@ LIBS += -Llib/open62541/build/bin -lopen62541
 .PHONY: clean all run
 all: run
 
-src/open62541/opcua.o: src/open62541/opcua.h
 src/open62541/opcua.o: src/open62541/opcua.c
 	gcc -o src/open62541/opcua.o  -c src/open62541/opcua.c $(INCLUDES)
 
