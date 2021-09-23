@@ -17,4 +17,16 @@ foreign import ccall "UA_Client_connect"          ua_client_connect :: Ptr UaCli
 foreign import ccall "__UA_Client_readAttribute"  ua_read_attribute
         :: Ptr UaClient -> Ptr UaNodeId -> Int32 -> Ptr (UaReadAttr) ->Ptr UaDataType -> IO (Int32)
 
+foreign import ccall "__UA_Client_Service"  ua_client_service
+        :: Ptr UaClient
+        -> Ptr ()
+        -> Ptr UaDataType
+        -> Ptr ()
+        -> Ptr UaDataType
+        -> IO ()
+
+foreign import ccall "UA_StatusCode_name"  ua_status_code_name ::  Int32 -> IO (CString)
+
+
+
 foreign import ccall "get_UA_TYPES" ua_data_type :: Int32 -> IO (Ptr UaDataType)

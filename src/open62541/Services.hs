@@ -104,6 +104,30 @@ read_attr_variant  client id attr id_type = do
         free value_ptr
         return $ Left $ "read value status: " ++ show status
 
+v :: Int32
+v = 10
+
+statusToText :: Int32 -> IO String
+statusToText x = do
+    str <- ua_status_code_name x
+    s <-peekCAString str
+    return s
+
+read_value2 :: Ptr UaClient -> UaNodeId -> IO (Either String UaVariant)
+read_value2 client id = do
+  Just request_t <- find_uatype_ptr (UaNodeIdNum 0 0 629)
+  Just response_t <- find_uatype_ptr (UaNodeIdNum 0 0 632)
+
+  request <- malloc
+  poke request (UaReadRequest {})
+  response <- malloc
+  poke response (UaReadResponse {})
+
+  ua_client_service client (castPtr request) request_t (castPtr response) response_t
+  r <- peek response
+
+  status <- (statusToText. serviceResult. responseHeader) r
+  return $Left $ "status: " ++ status
 
 read_value :: Ptr UaClient -> UaNodeId -> IO (Either String UaVariant)
 read_value client id = do

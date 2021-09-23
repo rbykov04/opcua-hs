@@ -33,6 +33,9 @@ main = do
   value <- sequence $ map f ids
   putStrLn $ show (map (("  "++). show) (zip value c))
 
+  value <- read_value2 client (UaNodeIdNum 0 0 2262)
+  putStrLn $" Request \n" ++ show value
+
 
 
 

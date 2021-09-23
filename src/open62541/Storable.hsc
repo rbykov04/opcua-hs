@@ -86,3 +86,66 @@ instance Storable UaNodeId where
       (#poke UA_NodeId, namespaceIndex) ptr space
       (#poke UA_NodeId, identifierType ) ptr t
       (#poke UA_NodeId, identifier.numeric) ptr id
+
+data UaExtensionObject =UaExtensionObject
+  deriving Show
+data UaDateTime =UaDateTime
+  deriving Show
+data UaDiagnosticInfo=UaDiagnosticInfo
+  deriving Show
+data UaStringStruct=UaStringStruct
+  deriving Show
+data UaResponseHeader = UaResponseHeader
+  {
+    timestamp :: UaDateTime,
+    requestHandle :: Int32,
+    serviceResult :: Int32,
+    serviceDiagnostics :: UaDiagnosticInfo,
+    stringTableSize:: CSize,
+    stringTable :: Ptr (UaStringStruct),
+    additionalHeader :: UaExtensionObject
+  } deriving Show
+
+
+data UaReadRequest = UaReadRequest
+  {
+    requestHeader :: (),
+    maxAge :: CDouble,
+    timestampsToReturn :: (),
+    nodesToReadSize :: CSize,
+    nodesToead :: Ptr ()
+  } deriving Show
+nsize :: CSize
+nsize = 0
+instance Storable UaReadRequest where
+    sizeOf    _ = (#size UA_ReadRequest)
+    alignment _ = alignment (undefined :: CString)
+    peek ptr = undefined
+    poke ptr r = do
+      (#poke UA_ReadRequest, nodesToReadSize) ptr nsize
+
+data UaReadResponse = UaReadResponse {
+    responseHeader :: UaResponseHeader,
+    resultsSize :: CSize
+}
+  deriving Show
+
+instance Storable UaResponseHeader where
+    sizeOf    _ = (#size UA_ResponseHeader)
+    alignment _ = alignment (undefined :: CString)
+    peek ptr = do
+        result <- #{peek UA_ResponseHeader, serviceResult} ptr
+        return (UaResponseHeader {serviceResult = result})
+
+    poke ptr _ = undefined
+
+instance Storable UaReadResponse where
+    sizeOf    _ = (#size UA_ReadResponse)
+    alignment _ = alignment (undefined :: CString)
+    peek ptr = do
+      header <- #{peek UA_ReadResponse, responseHeader} ptr
+      return (UaReadResponse {responseHeader = header})
+
+
+    poke ptr _ = do
+      (#poke UA_ReadResponse, resultsSize) ptr nsize
