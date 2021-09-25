@@ -59,7 +59,8 @@ read_attr_class  client id attr id_type = do
               Left e -> return (Left e)
     else do
         free value_ptr
-        return $ Left $ "read value status: " ++ show status
+        status <-statusToText status
+        return $ Left $ "read value status: " ++ status
 
 toUaClass :: Int32 -> Either String UaNodeClass
 toUaClass c
@@ -102,7 +103,8 @@ read_attr_variant  client id attr id_type = do
           Left t -> return (Left t)
     else do
         free value_ptr
-        return $ Left $ "read value status: " ++ show status
+        status <-statusToText status
+        return $ Left $ "read value status: " ++ status
 
 v :: Int32
 v = 10
