@@ -115,21 +115,35 @@ statusToText x = do
     s <-peekCAString str
     return s
 
+_UA_ATTRIBUTEID_VALUE :: Int32
+_UA_ATTRIBUTEID_VALUE                   = 13
 read_value2 :: Ptr UaClient -> UaNodeId -> IO (Either String UaVariant)
 read_value2 client id = do
   Just request_t <- find_uatype_ptr (UaNodeIdNum 0 0 629)
   Just response_t <- find_uatype_ptr (UaNodeIdNum 0 0 632)
 
   request <- malloc
-  poke request (UaReadRequest {})
+  poke request (UaReadRequest
+                [
+                  UA_ReadValueId (UaNodeIdNum 0 0 2262) _UA_ATTRIBUTEID_VALUE,
+                  UA_ReadValueId (UaNodeIdNum 0 0 2263) _UA_ATTRIBUTEID_VALUE
+
+                ])
   response <- malloc
   poke response (UaReadResponse {})
 
   ua_client_service client (castPtr request) request_t (castPtr response) response_t
   r <- peek response
 
-  status <- (statusToText. serviceResult. responseHeader) r
-  return $Left $ "status: " ++ status
+  let status = (serviceResult. responseHeader) r
+  if status == 0
+    then do
+      status <- (statusToText) status
+      return $Left $ "status: " ++ status
+
+    else do
+      status <- (statusToText) status
+      return $Left $ "status: " ++ status
 
 read_value :: Ptr UaClient -> UaNodeId -> IO (Either String UaVariant)
 read_value client id = do

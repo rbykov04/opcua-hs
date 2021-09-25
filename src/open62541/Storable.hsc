@@ -107,22 +107,35 @@ data UaResponseHeader = UaResponseHeader
   } deriving Show
 
 
-data UaReadRequest = UaReadRequest
-  {
-    requestHeader :: (),
-    maxAge :: CDouble,
-    timestampsToReturn :: (),
-    nodesToReadSize :: CSize,
-    nodesToead :: Ptr ()
-  } deriving Show
+data UaReadRequest = UaReadRequest [UA_ReadValueId]
+  deriving Show
+
 nsize :: CSize
 nsize = 0
+
+data UA_ReadValueId = UA_ReadValueId UaNodeId Int32
+  deriving Show
+
+instance Storable UA_ReadValueId where
+    sizeOf    _ = (#size UA_ReadValueId)
+    alignment _ = alignment (undefined :: CString)
+    peek ptr = undefined
+    poke ptr (UA_ReadValueId id attr) = do
+     -- (#poke UA_ReadValueId, nodeid) ptr id
+      (#poke UA_ReadValueId, attributeId) ptr attr
+
+
+
 instance Storable UaReadRequest where
     sizeOf    _ = (#size UA_ReadRequest)
     alignment _ = alignment (undefined :: CString)
     peek ptr = undefined
-    poke ptr r = do
-      (#poke UA_ReadRequest, nodesToReadSize) ptr nsize
+    poke ptr (UaReadRequest ns) = do
+      let count = length ns
+      arr <- callocArray count
+      pokeArray arr ns
+      (#poke UA_ReadRequest, nodesToRead) ptr arr
+      (#poke UA_ReadRequest, nodesToReadSize) ptr count
 
 data UaReadResponse = UaReadResponse {
     responseHeader :: UaResponseHeader,
