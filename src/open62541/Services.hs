@@ -4,8 +4,9 @@ import Foreign
 import Foreign.C
 import Foreign.C.Types
 import Foreign.Ptr
-import Data.Int
 import Foreign.Marshal.Alloc
+import Data.Int
+import Control.Applicative
 
 import OpcUa.Types
 import OpcUa.Bindings
@@ -147,17 +148,12 @@ instance ReadService UaReadValue where
           status <- (statusToText) status
           return $Left $ "status: " ++  status
 
+(...) :: (c -> d) -> ( a -> b -> c) -> a -> b -> d
+(...) f g a b = f (g a b)
 
 read_value_service :: Ptr UaClient -> [UaNodeId] -> IO (Either String [Either String UaVariant])
-read_value_service client ids = do
-  results <- read_service client ids
-  case results of
-    Left e      -> return $ Left e
-    Right values -> return $ Right $ map uaReadValueToVar values
-
-uaReadValueToVar :: Either String UaReadValue -> Either String UaVariant
-uaReadValueToVar (Left e)    = Left e
-uaReadValueToVar (Right value) = Right $ getUaReadValue value
+read_value_service = ((fmap . fmap . fmap . fmap) getUaReadValue) ... read_service
+                    --  IO    Either  []    Either
 
 read_class_service :: Ptr UaClient -> [UaNodeId] -> IO (Either String [Either String UaNodeClass])
 read_class_service = read_service
