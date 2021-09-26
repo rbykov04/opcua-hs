@@ -35,33 +35,6 @@ cast ptr  = return (castPtr ptr)
 cast_int :: Ptr UaReadAttr -> IO (Ptr Int32)
 cast_int ptr  = return (castPtr ptr)
 
-read_attr_class :: Ptr UaClient -> UaNodeId -> Int32 -> UaNodeId ->IO (Either String UaReadAttr)
-read_attr_class  client id attr id_type = do
-
-  Just t <- find_uatype_ptr id_type
-
-  id_ptr <- malloc
-  value_ptr    <- malloc
-
-  poke id_ptr id
-  status <- ua_read_attribute client id_ptr attr value_ptr t
-  free id_ptr
-  if status == 0
-    then do
-
-        p <- cast_int value_ptr
-        value <- peek p
-        free value_ptr
-
-
-        case toUaClass value of
-              Right c -> return (Right (UaClass c))
-              Left e -> return (Left e)
-    else do
-        free value_ptr
-        status <-statusToText status
-        return $ Left $ "read value status: " ++ status
-
 toUaClass :: Int32 -> Either String UaNodeClass
 toUaClass c
   | c == 1    = Right UaObjectClass
@@ -74,41 +47,6 @@ toUaClass c
   | c == 128  = Right UaViewClass
   | otherwise = Left $ "unknown class " ++ show c
 
-read_attr_variant :: Ptr UaClient -> UaNodeId -> Int32 -> UaNodeId ->IO (Either String UaReadAttr)
-read_attr_variant  client id attr id_type = do
-
-  Just t <- find_uatype_ptr id_type
-
-  id_ptr <- malloc
-  value_ptr    <- malloc
-
-  poke id_ptr id
-  status <- ua_read_attribute client id_ptr attr value_ptr t
-  free id_ptr
-  if status == 0
-    then do
-
-        p <- cast value_ptr
-        value <- peek p
-        free value_ptr
-
-
-        t <- get_data_value (getVariantType value)
-        case t of
-          Right (UaDataType typeid)  -> do
-            v <- convert typeid (getVariantData value)
-            case v of
-              Right var -> return (Right (UaValue var))
-              Left e -> return (Left e)
-          Left t -> return (Left t)
-    else do
-        free value_ptr
-        status <-statusToText status
-        return $ Left $ "read value status: " ++ status
-
-v :: Int32
-v = 10
-
 statusToText :: Int32 -> IO String
 statusToText x = do
     str <- ua_status_code_name x
@@ -116,52 +54,140 @@ statusToText x = do
     return s
 
 _UA_ATTRIBUTEID_VALUE :: Int32
-_UA_ATTRIBUTEID_VALUE                   = 13
-read_value2 :: Ptr UaClient -> UaNodeId -> IO (Either String UaVariant)
-read_value2 client id = do
-  Just request_t <- find_uatype_ptr (UaNodeIdNum 0 0 629)
-  Just response_t <- find_uatype_ptr (UaNodeIdNum 0 0 632)
+_UA_ATTRIBUTEID_VALUE = 13
 
-  request <- malloc
-  poke request (UaReadRequest
-                [
-                  UA_ReadValueId (UaNodeIdNum 0 0 2262) _UA_ATTRIBUTEID_VALUE,
-                  UA_ReadValueId (UaNodeIdNum 0 0 2263) _UA_ATTRIBUTEID_VALUE
+_UA_ATTRIBUTEID_NODECLASS :: Int32
+_UA_ATTRIBUTEID_NODECLASS = 2
 
-                ])
-  response <- malloc
-  poke response (UaReadResponse {})
+class ReadService a where
+    attributeId_ ::a-> Int32
 
-  ua_client_service client (castPtr request) request_t (castPtr response) response_t
-  r <- peek response
+    convertTo   :: UaVariantStruct -> IO (Either String a)
 
-  let status = (serviceResult. responseHeader) r
-  if status == 0
-    then do
-      status <- (statusToText) status
-      return $Left $ "status: " ++ status
+    read_service ::
+      Ptr UaClient -> [UaNodeId] -> IO (Either String [Either String a])
 
-    else do
-      status <- (statusToText) status
-      return $Left $ "status: " ++ status
+newtype UaReadValue = UaReadValue {getUaReadValue:: UaVariant}
+
+instance ReadService UaNodeClass where
+    attributeId_ = const _UA_ATTRIBUTEID_NODECLASS
+
+    convertTo dv = do
+        let ptr = getVariantData dv
+        value <- (peek. castPtr) ptr
+        case toUaClass value of
+          Right c -> return (Right c)
+          Left e -> return (Left e)
+
+    read_service client ids = do
+      Just request_t  <- find_uatype_ptr (UaNodeIdNum 0 0 629)
+      Just response_t <- find_uatype_ptr (UaNodeIdNum 0 0 632)
+
+      request <- calloc
+      let read_ids =  map (\id ->(id, attributeId_ UaObjectClass)) ids
+      poke request (UaReadRequest (map (\(id, attrid) -> UA_ReadValueId id attrid) read_ids))
+
+      response <- calloc
+      poke response (UaReadResponse {})
+
+      ua_client_service client (castPtr request) request_t (castPtr response) response_t
+      r <- peek response
+
+      let status = (serviceResult. responseHeader) r
+      if status == 0
+        then do
+          let count = resultsSize r
+          vs <- peekArray count $ castPtr $resultValues r
+
+          let ss = map getUaDataValueStatus vs
+          kk   <-   sequence $ map statusToText ss
+          vars <-   sequence $ map (convertTo . getUaDataValueVariant) vs
+
+          return $Right vars
+        else do
+          status <- (statusToText) status
+          return $Left $ "status: " ++  status
+
+
+
+instance ReadService UaReadValue where
+    attributeId_ = const _UA_ATTRIBUTEID_VALUE
+    convertTo str = do
+      v <-read_variant_ str
+      case v of
+        Left e -> return $ Left e
+        Right var -> return $ Right $ UaReadValue var
+
+    read_service client ids = do
+      Just request_t  <- find_uatype_ptr (UaNodeIdNum 0 0 629)
+      Just response_t <- find_uatype_ptr (UaNodeIdNum 0 0 632)
+
+      request <- calloc
+      let read_ids =  map (\id ->(id, attributeId_ (UaReadValue (UaString "")))) ids
+      poke request (UaReadRequest (map (\(id, attrid) -> UA_ReadValueId id attrid) read_ids))
+
+      response <- calloc
+      poke response (UaReadResponse {})
+
+      ua_client_service client (castPtr request) request_t (castPtr response) response_t
+      r <- peek response
+
+      let status = (serviceResult. responseHeader) r
+      if status == 0
+        then do
+          let count = resultsSize r
+          vs <- peekArray count $ castPtr $resultValues r
+
+          let ss = map getUaDataValueStatus vs
+          kk   <-   sequence $ map statusToText ss
+          vars <-   sequence $ map (convertTo . getUaDataValueVariant) vs
+
+          return $Right vars
+        else do
+          status <- (statusToText) status
+          return $Left $ "status: " ++  status
+
+
+read_value_service :: Ptr UaClient -> [UaNodeId] -> IO (Either String [Either String UaVariant])
+read_value_service client ids = do
+  results <- read_service client ids
+  case results of
+    Left e      -> return $ Left e
+    Right values -> return $ Right $ map uaReadValueToVar values
+
+uaReadValueToVar :: Either String UaReadValue -> Either String UaVariant
+uaReadValueToVar (Left e)    = Left e
+uaReadValueToVar (Right value) = Right $ getUaReadValue value
+
+read_class_service :: Ptr UaClient -> [UaNodeId] -> IO (Either String [Either String UaNodeClass])
+read_class_service = read_service
+
+read_variant_ :: UaVariantStruct ->  IO (Either String UaVariant)
+read_variant_ value = do
+        t <- get_data_value (getVariantType value)
+        case t of
+          Right (UaDataType typeid)  -> do
+            v <- convert typeid (getVariantData value)
+            case v of
+              Right var -> return (Right var)
+              Left e -> return (Left e)
+          Left t -> return (Left t)
+
+
 
 read_value :: Ptr UaClient -> UaNodeId -> IO (Either String UaVariant)
 read_value client id = do
-  v <- read_attr_variant client id 13 id_VariantType
-  case v of
-    Left e -> return (Left e)
-    Right (UaValue v) -> return (Right v)
-    Right a -> return (Left $ "incorrect TypeAttr " ++ show a)
+  result <- read_value_service client [id]
+  case result of
+    Left e -> return $ Left e
+    Right [] -> return $ Left "result is empty"
+    Right (x:_) -> return $ x
 
 print_time :: UaDateTimeStruct -> IO ()
 print_time time = do
         putStr $ "haskell result time: "
                 ++ show (getMinutes time)++":"
                 ++ show (getSeconds time) ++ "\n"
-
-idBuildInfoName   = UaNodeIdNum 0 0 2261
-idStartTime       = UaNodeIdNum 0 0 2257
-idCurrentTime     = UaNodeIdNum 0 0 2258
 
 readAndShowValue :: Ptr UaClient -> UaNodeId -> IO (UaVariant)
 readAndShowValue client id = do

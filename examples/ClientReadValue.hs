@@ -27,14 +27,25 @@ main = do
   value <- sequence $ map f [2262..2267]
   putStrLn $ show value
 
-  let read_class id = read_attr_class client (UaNodeIdNum 0 0 id) 2 id_NodeClassType
   let ids = [29, 32, 76, 69, 85]
-  c <- sequence $ map read_class ids
+  Right c <- read_class_service client (map (UaNodeIdNum 0 0) ids)
   value <- sequence $ map f ids
   putStrLn $ show (map (("  "++). show) (zip value c))
 
-  value <- read_value2 client (UaNodeIdNum 0 0 2262)
-  putStrLn $" Request \n" ++ show value
+  value <- read_value_service client [
+                    (UaNodeIdNum 0 0 2261),
+                    (UaNodeIdNum 0 0 2263)
+                  ]
+  putStrLn $  show value
+
+  classes <- read_class_service client [
+                    (UaNodeIdNum 0 0 10),
+                    (UaNodeIdNum 0 0 2261),
+                    (UaNodeIdNum 0 0 2263)
+                  ]
+
+
+  putStrLn $  show classes
 
 
 

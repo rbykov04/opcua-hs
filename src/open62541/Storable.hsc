@@ -97,13 +97,13 @@ data UaStringStruct=UaStringStruct
   deriving Show
 data UaResponseHeader = UaResponseHeader
   {
-    timestamp :: UaDateTime,
-    requestHandle :: Int32,
-    serviceResult :: Int32,
-    serviceDiagnostics :: UaDiagnosticInfo,
-    stringTableSize:: CSize,
-    stringTable :: Ptr (UaStringStruct),
-    additionalHeader :: UaExtensionObject
+    --timestamp :: UaDateTime,
+  --  requestHandle :: Int32,
+    serviceResult :: Int32
+ --   serviceDiagnostics :: UaDiagnosticInfo,
+ --   stringTableSize:: CSize,
+ --   stringTable :: Ptr (UaStringStruct),
+ --   additionalHeader :: UaExtensionObject
   } deriving Show
 
 
@@ -121,7 +121,7 @@ instance Storable UA_ReadValueId where
     alignment _ = alignment (undefined :: CString)
     peek ptr = undefined
     poke ptr (UA_ReadValueId id attr) = do
-     -- (#poke UA_ReadValueId, nodeid) ptr id
+      (#poke UA_ReadValueId, nodeId) ptr id
       (#poke UA_ReadValueId, attributeId) ptr attr
 
 
@@ -139,9 +139,9 @@ instance Storable UaReadRequest where
 
 data UaReadResponse = UaReadResponse {
     responseHeader :: UaResponseHeader,
-    resultsSize :: CSize
-}
-  deriving Show
+    resultValues :: Ptr (),
+    resultsSize :: Int
+} deriving Show
 
 instance Storable UaResponseHeader where
     sizeOf    _ = (#size UA_ResponseHeader)
@@ -156,9 +156,28 @@ instance Storable UaReadResponse where
     sizeOf    _ = (#size UA_ReadResponse)
     alignment _ = alignment (undefined :: CString)
     peek ptr = do
-      header <- #{peek UA_ReadResponse, responseHeader} ptr
-      return (UaReadResponse {responseHeader = header})
+      header  <- #{peek UA_ReadResponse, responseHeader} ptr
+      size    <- #{peek UA_ReadResponse, resultsSize} ptr
+      res <- #{peek UA_ReadResponse, results} ptr
+      return (UaReadResponse {responseHeader = header, resultsSize = size, resultValues = res})
 
 
     poke ptr _ = do
       (#poke UA_ReadResponse, resultsSize) ptr nsize
+
+data UaDataValueStruct = UaDataValueStruct
+  {
+    getUaDataValueStatus :: Int32,
+    getUaDataValueVariant :: UaVariantStruct
+  } deriving (Show)
+
+
+instance Storable UaDataValueStruct where
+    sizeOf    _ = (#size UA_DataValue)
+    alignment _ = alignment (undefined :: CString)
+    peek ptr = do
+      code  <- #{peek UA_DataValue, status} ptr
+      var   <- #{peek UA_DataValue, value} ptr
+      return (UaDataValueStruct {getUaDataValueStatus = code, getUaDataValueVariant = var})
+
+    poke _ _ = undefined

@@ -62,3 +62,7 @@ id_String      = UaNodeIdNum 0 0 12
 id_VariantType = UaNodeIdNum 0 0 24
 id_NodeClassType = UaNodeIdNum 0 0 257
 id_NodeId      = UaNodeIdNum 0 0 17
+
+idBuildInfoName   = UaNodeIdNum 0 0 2261
+idStartTime       = UaNodeIdNum 0 0 2257
+idCurrentTime     = UaNodeIdNum 0 0 2258
