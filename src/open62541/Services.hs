@@ -194,3 +194,74 @@ readAndShowValue client id = do
 ns0_read_value :: Ptr UaClient -> Int32 -> IO (Either String UaVariant)
 ns0_read_value client id = read_value client (UaNodeIdNum 0 0 id)
 
+class HasResponseHeader r where
+  getResponseHeader :: r -> UaResponseHeader
+
+instance HasResponseHeader UaReadResponse where
+  getResponseHeader = responseHeader
+
+instance HasResponseHeader UaBrowseResponse where
+  getResponseHeader = browseResponseHeader
+
+
+service_helper ::
+  (
+    HasResponseHeader response,
+    Storable response,
+    Storable request
+  ) => UaNodeId
+    -> UaNodeId
+    -> request
+    -> Ptr UaClient
+    -> IO (Either String (Ptr response))
+
+service_helper idReq idRes req client = do
+  Just request_t  <- find_uatype_ptr idReq
+  Just response_t <- find_uatype_ptr idRes
+  request <- calloc
+  poke request req
+
+  response <- calloc
+  ua_client_service client (castPtr request) request_t (castPtr response) response_t
+  r <- peek response
+
+  free request
+
+  let status = (serviceResult. getResponseHeader) r
+  if status == 0
+    then do
+      return $ Right response
+    else do
+      free response
+      status <- (statusToText) status
+      return $Left $ "status: " ++  status
+
+
+print_res :: UaReadResponse -> IO ()
+print_res res = putStrLn $ "res" ++ show res
+
+print_browse_res :: UaBrowseResponse -> IO ()
+print_browse_res res = putStrLn $ "res" ++ show res
+
+print_RefDes_res :: UaReferenceDescription -> IO ()
+print_RefDes_res res = putStrLn $ "res" ++ show res
+
+browse_service :: Ptr UaClient -> UaNodeId -> IO (Either String String)
+browse_service client id= do
+  res <- service_helper
+            (UaNodeIdNum 0 0 525)
+            (UaNodeIdNum 0 0 528)
+            (UaBrowseRequest [UA_BrowseDescription id])
+            client
+  case res of
+    Left e ->  return (Left e)
+    Right res_ptr -> do
+      r <- peek res_ptr
+      free res_ptr
+      print_browse_res r
+      let count = browseResultsSize r
+      vs <- peekArray count $browseResults r
+      let result = head vs
+      let size = getBrowseResultSize result
+      browseR <- peekArray size $getBrowseResultReferences result
+      return $ Left $ "hoho " ++ show ( map (getUaNodeId . getRefNodeId) browseR)

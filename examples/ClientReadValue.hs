@@ -40,6 +40,7 @@ main = do
 
   classes <- read_class_service client [
                     (UaNodeIdNum 0 0 10),
+                    (UaNodeIdNum 0 0 2253),
                     (UaNodeIdNum 0 0 2261),
                     (UaNodeIdNum 0 0 2263)
                   ]
@@ -47,7 +48,7 @@ main = do
 
   putStrLn $  show classes
 
-
-
+  server_obj <- browse_service client (UaNodeIdNum 0 0 2253)
+  putStrLn $  show server_obj
 
   ua_client_delete client

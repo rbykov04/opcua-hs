@@ -106,12 +106,67 @@ data UaResponseHeader = UaResponseHeader
  --   additionalHeader :: UaExtensionObject
   } deriving Show
 
+data UA_BrowseDescription = UA_BrowseDescription
+  {
+    browseNodeId :: UaNodeId
+  }
+  deriving Show
+
+instance Storable UA_BrowseDescription where
+    sizeOf    _ = (#size UA_BrowseDescription)
+    alignment _ = alignment (undefined :: CString)
+    peek ptr = undefined
+    poke ptr (UA_BrowseDescription id) = do
+      (#poke UA_ReadValueId, nodeId) ptr id
+
+
+data UaBrowseRequest = UaBrowseRequest [UA_BrowseDescription]
+  deriving Show
+
+maxrefpernode :: CSize
+maxrefpernode = 100
+instance Storable UaBrowseRequest where
+    sizeOf    _ = (#size UA_BrowseRequest)
+    alignment _ = alignment (undefined :: CString)
+    peek ptr = undefined
+    poke ptr (UaBrowseRequest ns) = do
+      let count = length ns
+      arr <- callocArray count
+      pokeArray arr ns
+      (#poke UA_BrowseRequest, requestedMaxReferencesPerNode) ptr maxrefpernode
+      (#poke UA_BrowseRequest, nodesToBrowse) ptr arr
+      (#poke UA_BrowseRequest, nodesToBrowseSize) ptr count
+
+data UaBrowseResponse = UaBrowseResponse {
+    browseResponseHeader :: UaResponseHeader,
+    browseResults :: Ptr (UA_BrowseResult),
+    browseResultsSize :: Int
+} deriving Show
+
+instance Storable UaBrowseResponse where
+    sizeOf    _ = (#size UA_BrowseResponse)
+    alignment _ = alignment (undefined :: CString)
+    peek ptr = do
+      header  <- #{peek UA_BrowseResponse, responseHeader} ptr
+      size    <- #{peek UA_BrowseResponse, resultsSize} ptr
+      res <- #{peek UA_BrowseResponse, results} ptr
+      return (UaBrowseResponse {
+                 browseResponseHeader = header,
+                 browseResultsSize = size,
+                 browseResults = res})
+
+    poke ptr _ = undefined
+
+
+
+
 
 data UaReadRequest = UaReadRequest [UA_ReadValueId]
   deriving Show
 
 nsize :: CSize
 nsize = 0
+
 
 data UA_ReadValueId = UA_ReadValueId UaNodeId Int32
   deriving Show
@@ -179,5 +234,43 @@ instance Storable UaDataValueStruct where
       code  <- #{peek UA_DataValue, status} ptr
       var   <- #{peek UA_DataValue, value} ptr
       return (UaDataValueStruct {getUaDataValueStatus = code, getUaDataValueVariant = var})
+
+    poke _ _ = undefined
+
+data UA_BrowseResult = UA_BrowseResult
+  {
+    getBrowseResultSize :: Int,
+    getBrowseResultReferences :: Ptr UaReferenceDescription
+  }
+  deriving (Show)
+
+instance Storable UA_BrowseResult where
+    sizeOf    _ = (#size UA_BrowseResult)
+    alignment _ = alignment (undefined :: CString)
+    peek ptr = do
+      size  <- #{peek UA_BrowseResult, referencesSize } ptr
+      ref   <- #{peek UA_BrowseResult,  references} ptr
+      return (UA_BrowseResult
+              {
+                getBrowseResultSize       = size,
+                getBrowseResultReferences = ref
+              })
+
+    poke _ _ = undefined
+
+data UaExpandedNodeId = UaExpandedNodeId {getUaNodeId :: UaNodeId} deriving (Show)
+data UaReferenceDescription = UaReferenceDescription
+  {
+    getRefNodeId :: UaExpandedNodeId
+
+  } deriving (Show)
+
+
+instance Storable UaReferenceDescription where
+    sizeOf    _ = (#size UA_ReferenceDescription)
+    alignment _ = alignment (undefined :: CString)
+    peek ptr = do
+      id  <- #{peek UA_ReferenceDescription, nodeId.nodeId} ptr
+      return (UaReferenceDescription {getRefNodeId = UaExpandedNodeId id})
 
     poke _ _ = undefined
