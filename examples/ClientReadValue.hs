@@ -51,4 +51,7 @@ main = do
   server_obj <- browse_service client (UaNodeIdNum 0 0 2253)
   putStrLn $  show server_obj
 
+  server_obj <- browse_service client (UaNodeIdNum 0 0 85)
+  putStrLn $  show server_obj
+
   ua_client_delete client

@@ -44,6 +44,9 @@ test-c-opcua: src/open62541/opcua.o
 test-c-server: src/open62541/test-server.c
 	gcc -o test-c-server src/open62541/test-server.c ${LIBS} $(INCLUDES)
 
+test-c-server2: examples/test-server2.c
+	gcc -o test-c-server2 examples/test-server2.c ${LIBS} $(INCLUDES)
+
 examples/clientReadValue: examples/ClientReadValue.hs
 examples/clientReadValue: opc-ua-client
 	ghc  --make  -o examples/clientReadValue $(HASKELL_FILES)  examples/ClientReadValue.hs src/open62541/Storable.hs src/open62541/opcua.o ${LIBS}

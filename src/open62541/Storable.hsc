@@ -112,13 +112,16 @@ data UA_BrowseDescription = UA_BrowseDescription
   }
   deriving Show
 
+_UA_BROWSERESULTMASK_ALL :: Int32
+_UA_BROWSERESULTMASK_ALL = 63
+
 instance Storable UA_BrowseDescription where
     sizeOf    _ = (#size UA_BrowseDescription)
     alignment _ = alignment (undefined :: CString)
     peek ptr = undefined
     poke ptr (UA_BrowseDescription id) = do
-      (#poke UA_ReadValueId, nodeId) ptr id
-
+      (#poke UA_BrowseDescription, nodeId) ptr id
+      (#poke UA_BrowseDescription, resultMask) ptr _UA_BROWSERESULTMASK_ALL
 
 data UaBrowseRequest = UaBrowseRequest [UA_BrowseDescription]
   deriving Show
@@ -261,7 +264,10 @@ instance Storable UA_BrowseResult where
 data UaExpandedNodeId = UaExpandedNodeId {getUaNodeId :: UaNodeId} deriving (Show)
 data UaReferenceDescription = UaReferenceDescription
   {
-    getRefNodeId :: UaExpandedNodeId
+    getRefNodeId     :: UaExpandedNodeId,
+    getRefDisplayName ::UA_LocalizedText,
+    getRefBrowseName :: UaQualifiedName,
+    tt ::Ptr ()
 
   } deriving (Show)
 
@@ -271,6 +277,65 @@ instance Storable UaReferenceDescription where
     alignment _ = alignment (undefined :: CString)
     peek ptr = do
       id  <- #{peek UA_ReferenceDescription, nodeId.nodeId} ptr
-      return (UaReferenceDescription {getRefNodeId = UaExpandedNodeId id})
+      name <- #{peek UA_ReferenceDescription, browseName} ptr
+      dname <- #{peek UA_ReferenceDescription, displayName} ptr
+      t <- #{peek UA_ReferenceDescription, browseName.name.data} ptr
+      return (UaReferenceDescription {getRefNodeId = UaExpandedNodeId id,
+                                      getRefDisplayName = dname,
+                                      getRefBrowseName = name,
+                                      tt = t
+                                     })
 
     poke _ _ = undefined
+
+type UaName = UA_String
+type NamespaceIndex = Int16
+
+class HasUaName a where
+    uaName ::a-> UaName
+
+class HasUaNamespaceIndex a where
+    namespaceIndex ::a-> NamespaceIndex
+
+data UaQualifiedName = UaQualifiedName NamespaceIndex UA_String deriving Show
+
+instance HasUaNamespaceIndex UaQualifiedName where
+  namespaceIndex (UaQualifiedName idx _) = idx
+
+instance HasUaName UaQualifiedName where
+  uaName (UaQualifiedName _ name) = name
+
+
+instance Storable UaQualifiedName where
+    sizeOf    _ = (#size UA_QualifiedName)
+    alignment _ = alignment (undefined :: CString)
+    peek ptr = do
+        sp   <- (#peek UA_QualifiedName, namespaceIndex) ptr
+        name <- (#peek UA_QualifiedName, name) ptr
+        return (UaQualifiedName sp name)
+
+    poke ptr _ = undefined
+
+data UA_String = UA_String CSize CString deriving Show
+
+instance Storable UA_String where
+    sizeOf    _ = (#size UA_String)
+    alignment _ = alignment (undefined :: CString)
+    peek ptr = do
+        len <- (#peek UA_String, length) ptr
+        d   <- (#peek UA_String, data) ptr
+        return (UA_String len d)
+
+    poke ptr _ = undefined
+
+data UA_LocalizedText = UA_LocalizedText UA_String UA_String deriving Show
+
+instance Storable UA_LocalizedText where
+    sizeOf    _ = (#size UA_LocalizedText)
+    alignment _ = alignment (undefined :: CString)
+    peek ptr = do
+        locale <- (#peek UA_LocalizedText, locale) ptr
+        text  <- (#peek UA_LocalizedText, text) ptr
+        return (UA_LocalizedText locale text)
+
+    poke ptr _ = undefined

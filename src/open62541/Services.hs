@@ -264,4 +264,18 @@ browse_service client id= do
       let result = head vs
       let size = getBrowseResultSize result
       browseR <- peekArray size $getBrowseResultReferences result
-      return $ Left $ "hoho " ++ show ( map (getUaNodeId . getRefNodeId) browseR)
+
+      r <- sequence $ map (putStrLn . show . helper_f) browseR
+
+      return $ Left $ "hoho " ++ show ( browseR)
+
+helper_f x = f x where
+    f x = ((s, id), name, dname, t)
+    s  = (getNamespaceIndex . getUaNodeId . getRefNodeId) x
+    id = (getIdentifire. getUaNodeId . getRefNodeId) x
+    name = (uaName.  getRefBrowseName) x
+    dname = getRefDisplayName x
+    t = tt x
+    cstr (UA_String len d) =do
+      r <- peekCString d
+      return r
