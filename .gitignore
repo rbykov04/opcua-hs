@@ -3,5 +3,6 @@ test-c-opcua
 test-c-server
 *.hi
 *.o
+uaclient
 src/open62541/Storable.hs
 examples/clientReadValue

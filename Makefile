@@ -50,3 +50,7 @@ test-c-server2: examples/test-server2.c
 examples/clientReadValue: examples/ClientReadValue.hs
 examples/clientReadValue: opc-ua-client
 	ghc  --make  -o examples/clientReadValue $(HASKELL_FILES)  examples/ClientReadValue.hs src/open62541/Storable.hs src/open62541/opcua.o ${LIBS}
+
+uaclient: opc-ua-client
+uaclient: src/cli/cli.hs
+	ghc  --make  -o uaclient $(HASKELL_FILES)  src/cli/cli.hs src/open62541/Storable.hs src/open62541/opcua.o ${LIBS}
