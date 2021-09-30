@@ -9,6 +9,15 @@ import OpcUa.Types
 import OpcUa.Bindings
 import OpcUa.Storable
 import OpcUa.Services
+import System.Environment
+import System.Exit
+import System.IO
+
+getInt32Arg :: String -> Int32
+getInt32Arg = read
+
+getInt16Arg :: String -> Int16
+getInt16Arg = read
 
 uri :: String
 uri = "opc.tcp://localhost:4840"
@@ -22,9 +31,13 @@ create_client = do
   free endpoint
   return client
 
+
 main = do
+  args <- getArgs
+  let spx = getInt16Arg (head args)
+  let idx = getInt32Arg (head (tail args))
   client <- create_client
-  Right b <- browse_service client (UaNodeIdNum 0 0 85)
+  Right b <- browse_service client (UaNodeIdNum spx 0 idx)
   ua_client_delete client
 
 

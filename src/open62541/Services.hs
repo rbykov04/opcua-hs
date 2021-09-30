@@ -258,7 +258,6 @@ browse_service client id= do
     Right res_ptr -> do
       r <- peek res_ptr
       free res_ptr
-      print_browse_res r
       let count = browseResultsSize r
       vs <- peekArray count $browseResults r
       let result = head vs

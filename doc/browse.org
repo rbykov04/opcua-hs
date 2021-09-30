@@ -1,14 +1,50 @@
 #+TITLE: browse
 #+begin_src sh :results output
 cd ..
-./uaclient
-
+./uaclient 0 85
 #+end_src
 
 #+RESULTS:
-: [2021-09-30 09:05:19.733 (UTC+0300)] [33mwarn/userland[0m	AcceptAll Certificate Verification. Any remote certificate will be accepted.
-: resUaBrowseResponse {browseResponseHeader = UaResponseHeader {serviceResult = 0}, browseResults = 0x000000000122e290, browseResultsSize = 1}
-: ((0,61),"FolderType",("","FolderType"))
-: ((0,2253),"Server",("","Server"))
-: ((1,10),"the answer",("en-US","the answer"))
-: ((1,13),"double matrix",("en-US","Double Matrix"))
+: [2021-09-30 09:32:26.480 (UTC+0300)] [33mwarn/userland[0m	AcceptAll Certificate Verification. Any remote certificate will be accepted.
+: 0
+: resUaBrowseResponse {browseResponseHeader = UaResponseHeader {serviceResult = 0}, browseResults = 0x000000000137e340, browseResultsSize = 1}
+: 0 61	FolderType
+: 0 2253	Server
+: 1 10	the answer
+: 1 13	double matrix
+
+#+begin_src sh :results output
+cd ..
+./uaclient 0 2253
+#+end_src
+
+#+RESULTS:
+#+begin_example
+[2021-09-30 10:28:03.674 (UTC+0300)] [33mwarn/userland[0m	AcceptAll Certificate Verification. Any remote certificate will be accepted.
+0 2004	ServerType
+0 2994	Auditing
+0 2267	ServiceLevel
+0 2255	NamespaceArray
+0 2254	ServerArray
+0 2296	ServerRedundancy
+0 2295	VendorServerInfo
+0 2274	ServerDiagnostics
+0 2268	ServerCapabilities
+0 2256	ServerStatus
+0 11492	GetMonitoredItems
+#+end_example
+
+#+begin_src sh :results output
+cd ..
+./uaclient 0 2256
+#+end_src
+
+#+RESULTS:
+: [2021-09-30 10:28:22.582 (UTC+0300)] [33mwarn/userland[0m	AcceptAll Certificate Verification. Any remote certificate will be accepted.
+: 0 2138	ServerStatusType
+: 0 2993	ShutdownReason
+: 0 2992	SecondsTillShutdown
+: 0 2260	BuildInfo
+: 0 2259	State
+: 0 2258	CurrentTime
+: 0 2257	StartTime
