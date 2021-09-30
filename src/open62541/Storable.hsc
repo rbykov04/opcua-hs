@@ -1,5 +1,6 @@
 --{-# INCLUDE "opcua.h" #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
+#include <open62541/client.h>
 #include <open62541/types.h>
 #include <open62541/types_generated.h>
 module OpcUa.Storable where
@@ -339,3 +340,6 @@ instance Storable UA_LocalizedText where
         return (UA_LocalizedText locale text)
 
     poke ptr _ = undefined
+
+ua_disable_log config = do
+  (#poke UA_ClientConfig, logger.log) config nullPtr

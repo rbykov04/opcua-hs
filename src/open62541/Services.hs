@@ -246,7 +246,7 @@ print_browse_res res = putStrLn $ "res" ++ show res
 print_RefDes_res :: UaReferenceDescription -> IO ()
 print_RefDes_res res = putStrLn $ "res" ++ show res
 
-browse_service :: Ptr UaClient -> UaNodeId -> IO (Either String String)
+browse_service :: Ptr UaClient -> UaNodeId -> IO (Either String [UaReferenceDescription])
 browse_service client id= do
   res <- service_helper
             (UaNodeIdNum 0 0 525)
@@ -265,17 +265,5 @@ browse_service client id= do
       let size = getBrowseResultSize result
       browseR <- peekArray size $getBrowseResultReferences result
 
-      r <- sequence $ map (putStrLn . show . helper_f) browseR
 
-      return $ Left $ "hoho " ++ show ( browseR)
-
-helper_f x = f x where
-    f x = ((s, id), name, dname, t)
-    s  = (getNamespaceIndex . getUaNodeId . getRefNodeId) x
-    id = (getIdentifire. getUaNodeId . getRefNodeId) x
-    name = (uaName.  getRefBrowseName) x
-    dname = getRefDisplayName x
-    t = tt x
-    cstr (UA_String len d) =do
-      r <- peekCString d
-      return r
+      return $ Right browseR

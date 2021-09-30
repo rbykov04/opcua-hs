@@ -1,25 +1,14 @@
 #+TITLE: browse
 #+begin_src sh :results output
 cd ..
-make uaclient
 ./uaclient
 
 #+end_src
 
 #+RESULTS:
-#+begin_example
-[2021-09-29 23:23:21.101 (UTC+0300)] [33mwarn/userland[0m	AcceptAll Certificate Verification. Any remote certificate will be accepted.
-[2021-09-29 23:23:21.103 (UTC+0300)] [32minfo/channel[0m	Connection 3 | SecureChannel 48 | SecureChannel opened with SecurityPolicy http://opcfoundation.org/UA/SecurityPolicy#None and a revised lifetime of 600.00s
-[2021-09-29 23:23:21.103 (UTC+0300)] [32minfo/client[0m	Client Status: ChannelState: Open, SessionState: Closed, ConnectStatus: Good
-[2021-09-29 23:23:21.103 (UTC+0300)] [32minfo/client[0m	Selected endpoint 0 in URL opc.tcp://localhost:4840 with SecurityMode None and SecurityPolicy http://opcfoundation.org/UA/SecurityPolicy#None
-[2021-09-29 23:23:21.103 (UTC+0300)] [32minfo/client[0m	Selected UserTokenPolicy open62541-anonymous-policy with UserTokenType Anonymous and SecurityPolicy http://opcfoundation.org/UA/SecurityPolicy#None
-[2021-09-29 23:23:21.104 (UTC+0300)] [32minfo/client[0m	Client Status: ChannelState: Open, SessionState: Created, ConnectStatus: Good
-[2021-09-29 23:23:21.104 (UTC+0300)] [32minfo/client[0m	Client Status: ChannelState: Open, SessionState: Activated, ConnectStatus: Good
-[2021-09-29 23:23:21.109 (UTC+0300)] [32minfo/client[0m	Client Status: ChannelState: Closed, SessionState: Closed, ConnectStatus: Good
-resUaBrowseResponse {browseResponseHeader = UaResponseHeader {serviceResult = 0}, browseResults = 0x00000000011ec290, browseResultsSize = 1}
-((0,61),UA_String 10 0x00000000011ecbb0,UA_LocalizedText (UA_String 0 0x0000000000000001) (UA_String 10 0x00000000011ecbd0),0x00000000011ecbb0)
-((0,2253),UA_String 6 0x00000000011ecbf0,UA_LocalizedText (UA_String 0 0x0000000000000001) (UA_String 6 0x00000000011ecc10),0x00000000011ecbf0)
-((1,10),UA_String 10 0x00000000011ecc50,UA_LocalizedText (UA_String 5 0x00000000011ecc70) (UA_String 10 0x00000000011ecc90),0x00000000011ecc50)
-((1,13),UA_String 13 0x00000000011eccd0,UA_LocalizedText (UA_String 5 0x00000000011eccf0) (UA_String 13 0x00000000011ecd10),0x00000000011eccd0)
-Left "hoho [UaReferenceDescription {getRefNodeId = UaExpandedNodeId {getUaNodeId = UaNodeIdNum {getNamespaceIndex = 0, getNodeIdType = 0, getIdentifire = 61}}, getRefDisplayName = UA_LocalizedText (UA_String 0 0x0000000000000001) (UA_String 10 0x00000000011ecbd0), getRefBrowseName = UaQualifiedName 0 (UA_String 10 0x00000000011ecbb0), tt = 0x00000000011ecbb0},UaReferenceDescription {getRefNodeId = UaExpandedNodeId {getUaNodeId = UaNodeIdNum {getNamespaceIndex = 0, getNodeIdType = 0, getIdentifire = 2253}}, getRefDisplayName = UA_LocalizedText (UA_String 0 0x0000000000000001) (UA_String 6 0x00000000011ecc10), getRefBrowseName = UaQualifiedName 0 (UA_String 6 0x00000000011ecbf0), tt = 0x00000000011ecbf0},UaReferenceDescription {getRefNodeId = UaExpandedNodeId {getUaNodeId = UaNodeIdNum {getNamespaceIndex = 1, getNodeIdType = 3, getIdentifire = 10}}, getRefDisplayName = UA_LocalizedText (UA_String 5 0x00000000011ecc70) (UA_String 10 0x00000000011ecc90), getRefBrowseName = UaQualifiedName 1 (UA_String 10 0x00000000011ecc50), tt = 0x00000000011ecc50},UaReferenceDescription {getRefNodeId = UaExpandedNodeId {getUaNodeId = UaNodeIdNum {getNamespaceIndex = 1, getNodeIdType = 3, getIdentifire = 13}}, getRefDisplayName = UA_LocalizedText (UA_String 5 0x00000000011eccf0) (UA_String 13 0x00000000011ecd10), getRefBrowseName = UaQualifiedName 1 (UA_String 13 0x00000000011eccd0), tt = 0x00000000011eccd0}]"
-#+end_example
+: [2021-09-30 09:05:19.733 (UTC+0300)] [33mwarn/userland[0m	AcceptAll Certificate Verification. Any remote certificate will be accepted.
+: resUaBrowseResponse {browseResponseHeader = UaResponseHeader {serviceResult = 0}, browseResults = 0x000000000122e290, browseResultsSize = 1}
+: ((0,61),"FolderType",("","FolderType"))
+: ((0,2253),"Server",("","Server"))
+: ((1,10),"the answer",("en-US","the answer"))
+: ((1,13),"double matrix",("en-US","Double Matrix"))

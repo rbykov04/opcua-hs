@@ -10,7 +10,7 @@ LIBS :=
 LIBS += -Llib/open62541/build/bin -lopen62541
 
 .PHONY: clean all run
-all: run
+all: uaclient
 
 src/open62541/opcua.o: src/open62541/opcua.c
 	gcc -o src/open62541/opcua.o  -c src/open62541/opcua.c $(INCLUDES)
@@ -54,3 +54,4 @@ examples/clientReadValue: opc-ua-client
 uaclient: opc-ua-client
 uaclient: src/cli/cli.hs
 	ghc  --make  -o uaclient $(HASKELL_FILES)  src/cli/cli.hs src/open62541/Storable.hs src/open62541/opcua.o ${LIBS}
+	./uaclient
