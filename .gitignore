@@ -4,5 +4,6 @@ test-c-server
 *.hi
 *.o
 uaclient
+browse
 src/open62541/Storable.hs
 examples/clientReadValue

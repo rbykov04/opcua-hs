@@ -52,6 +52,6 @@ examples/clientReadValue: opc-ua-client
 	ghc  --make  -o examples/clientReadValue $(HASKELL_FILES)  examples/ClientReadValue.hs src/open62541/Storable.hs src/open62541/opcua.o ${LIBS}
 
 uaclient: opc-ua-client
-uaclient: src/cli/cli.hs
-	ghc  --make  -o uaclient $(HASKELL_FILES)  src/cli/cli.hs src/open62541/Storable.hs src/open62541/opcua.o ${LIBS}
-	./uaclient 0 85
+uaclient: src/cli/browse.hs
+	ghc  --make  -o browse $(HASKELL_FILES)  src/cli/browse.hs src/open62541/Storable.hs src/open62541/opcua.o ${LIBS}
+	./browse 0 85

@@ -1,13 +1,11 @@
 #+TITLE: browse
 #+begin_src sh :results output
 cd ..
-./uaclient 0 85
+./browse 0 85
 #+end_src
 
 #+RESULTS:
-: [2021-09-30 09:32:26.480 (UTC+0300)] [33mwarn/userland[0m	AcceptAll Certificate Verification. Any remote certificate will be accepted.
-: 0
-: resUaBrowseResponse {browseResponseHeader = UaResponseHeader {serviceResult = 0}, browseResults = 0x000000000137e340, browseResultsSize = 1}
+: [2021-10-04 09:49:11.131 (UTC+0300)] [33mwarn/userland[0m	AcceptAll Certificate Verification. Any remote certificate will be accepted.
 : 0 61	FolderType
 : 0 2253	Server
 : 1 10	the answer
@@ -15,12 +13,12 @@ cd ..
 
 #+begin_src sh :results output
 cd ..
-./uaclient 0 2253
+./browse 0 2253
 #+end_src
 
 #+RESULTS:
 #+begin_example
-[2021-09-30 10:28:03.674 (UTC+0300)] [33mwarn/userland[0m	AcceptAll Certificate Verification. Any remote certificate will be accepted.
+[2021-10-04 09:49:20.996 (UTC+0300)] [33mwarn/userland[0m	AcceptAll Certificate Verification. Any remote certificate will be accepted.
 0 2004	ServerType
 0 2994	Auditing
 0 2267	ServiceLevel
@@ -36,11 +34,11 @@ cd ..
 
 #+begin_src sh :results output
 cd ..
-./uaclient 0 2256
+./browse 0 2256
 #+end_src
 
 #+RESULTS:
-: [2021-09-30 10:28:22.582 (UTC+0300)] [33mwarn/userland[0m	AcceptAll Certificate Verification. Any remote certificate will be accepted.
+: [2021-10-04 09:49:24.555 (UTC+0300)] [33mwarn/userland[0m	AcceptAll Certificate Verification. Any remote certificate will be accepted.
 : 0 2138	ServerStatusType
 : 0 2993	ShutdownReason
 : 0 2992	SecondsTillShutdown
